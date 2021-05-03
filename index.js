@@ -3,7 +3,7 @@ const cheerio = require("cheerio");
 
 tableKey = ["codigo", "nome", "nomeingles", "nomecientifico", "grupo", "marca"];
 jsonDB = [];
-
+const result = [];
 function cleanJSON(jsonstring) {
     // preserve newlines, etc - use valid JsON
     jsonstring = jsonstring
@@ -22,11 +22,69 @@ function cleanJSON(jsonstring) {
 }
 
 async function main() {
-    let pagina = 11;
-    const result = await request.get(
-        `http://www.tbca.net.br/base-dados/composicao_estatistica.php?pagina=${pagina}`
-    );
-    const $ = cheerio.load(result);
+    var fs = require("fs");
+
+    for (i = 1; i < 55; i++) {
+        result[i] = await request.get(
+            `http://www.tbca.net.br/base-dados/composicao_estatistica.php?pagina=${i}`
+        );
+        var logger = fs.createWriteStream(`pagina${i}.html`, {
+            flags: "a", // 'a' means appending (old data will be preserved)
+        });
+        logger.write(result[i]);
+
+        console.log("Baixando página " + i);
+    }
+    var logger = fs.createWriteStream(`final_log.txt`, {
+        flags: "a", // 'a' means appending (old data will be preserved)
+    });
+    for (j = 1; j < 55; j++) {
+        const $ = cheerio.load(result[j]);
+
+        const table = $("body > div.wrapper > main > div > table"); // jQuery retorna um array, mas apenas o [0] é a table em si, o resto é undefined
+        const tableTds = $(table).find("td");
+        let counter = 0;
+
+
+
+        for (i = 0; i < tableTds.length; i++) {
+            if (i % 6 == 0) {
+                console.log(`"${$(tableTds[i]).text()}" : { `);
+                logger.write(`"${$(tableTds[i]).text()}" : { `);
+                i++;
+                counter++;
+            }
+            if (counter == 5) {
+                console.log(
+                    `"${tableKey[counter]}" : "${$(tableTds[i]).text()}"`
+                );
+                logger.write(
+                    `"${tableKey[counter]}" : "${$(tableTds[i]).text()}"`
+                );
+            } else {
+                console.log(
+                    `"${tableKey[counter]}" : "${$(tableTds[i])
+                        .text()
+                        .replace(/["]+/g, "")}",`
+                );
+                logger.write(
+                    `"${tableKey[counter]}" : "${$(tableTds[i])
+                        .text()
+                        .replace(/["]+/g, "")}",`
+                );
+            }
+
+            counter++;
+            if (counter > 5) {
+                counter = 0;
+                console.log(`} ,`);
+                logger.write(`} ,`);
+            }
+        }
+        console.log(`Scrapped ${j}`);
+    }
+
+    /*const $ = cheerio.load(result);
 
     const table = $("body > div.wrapper > main > div > table"); // jQuery retorna um array, mas apenas o [0] é a table em si, o resto é undefined
     const tableTds = $(table).find("td");
