@@ -1,6 +1,8 @@
 const request = require("request-promise");
 const cheerio = require("cheerio");
 
+
+
 tableKey = ["codigo", "nome", "nomeingles", "nomecientifico", "grupo", "marca"];
 jsonDB = [];
 const result = [];
@@ -28,7 +30,7 @@ async function main() {
         result[i] = await request.get(
             `http://www.tbca.net.br/base-dados/composicao_estatistica.php?pagina=${i}`
         );
-        var logger = fs.createWriteStream(`pagina${i}.html`, {
+        var logger = fs.createWriteStream(`./teste/pagina${i}.html`, {
             flags: "a", // 'a' means appending (old data will be preserved)
         });
         logger.write(result[i]);
@@ -83,7 +85,8 @@ async function main() {
         }
         console.log(`Scrapped ${j}`);
     }
-
+}
+main();
     /*const $ = cheerio.load(result);
 
     const table = $("body > div.wrapper > main > div > table"); // jQuery retorna um array, mas apenas o [0] é a table em si, o resto é undefined
@@ -140,7 +143,7 @@ async function main() {
         logger.write(JSON.parse(jsonDB[item])); // append string to your file
     }
     logger.end(); // close string*/
-}
+
 // pagina 54, atuald 6
 /*
 function run() {
@@ -150,4 +153,4 @@ function run() {
     }
 }
 run();*/
-main();
+

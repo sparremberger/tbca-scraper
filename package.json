@@ -3,10 +3,20 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts" : {
+    "start": "tsc && node dist/npn.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev --respawn --transpile-only scrapper.ts"
+  },
   "dependencies": {
     "cheerio": "^1.0.0-rc.6",
     "prompt": "^1.1.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.3",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.3.5"
   }
 }
