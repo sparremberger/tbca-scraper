@@ -7,8 +7,10 @@ var fs = require("fs");
 
 async function main() {
     //downloadPages();
-    getDataFromPage();
-    console.log("I ran!");
+    for (let i = 1; i < 55; i++ ) {
+        getDataFromPage(i);
+    }
+    console.log("Pronto!");
 }
 
 // Baixa todas as páginas da seção de composição química do site tbca.net.br
@@ -42,21 +44,15 @@ function loadPage(page: number): string {
 }
 
 // Obtém as informações iniciais dos alimentos contidos na própria página de listagem
-function getDataFromPage() {
-    const $ = cheerio.load(loadPage(1));
+function getDataFromPage(page : number) {
+    const $ = cheerio.load(loadPage(page));
     const table = $("body > div > main > div > table > tbody > tr > td");
-    //console.log($(table[6]).text());
+
+    // cria o array de objetos que irá armazenar os dados extraídos
     let linha = [{}];
-    //let dados = { codigo: $(table[0]).text(), nome: $(table[1]).text() }; //; nomeIngles : string; nomeCientifico : string; grupo : string; marca : string; }
-    //console.log(dados.codigo);
-    //console.log(dados.nome);
-    //linha[0] = dados;
-    //console.log(linha[0]);
-    console.log(table.length);
-    //console.log($(table[0]).text());
+
     let counter = 0;
     for (let j = 0; j < table.length; j+=6) {
-        
             linha[counter] = {
                 codigo: $(table[j]).text().replace(/["]+/g, "'"),
                 nome: $(table[j + 1]).text().replace(/["]+/g, "'"),
@@ -66,7 +62,6 @@ function getDataFromPage() {
                 marca: $(table[j + 5]).text().replace(/["]+/g, "'"),
             }
         counter++;
-        
     }
     
     console.log(linha[99]);
