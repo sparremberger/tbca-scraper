@@ -14,7 +14,7 @@ async function run() {
     /*for (let i = 1; i < 55; i++) { //check!
         getDataFromPage(i); // o método é executado para cada uma das páginas e no final ele nos salva tudo num arquivo JSON
     }*/
-    /*for (let i = 1; i < objects.length; i++) {
+    /*for (let i = 0; i < objects.length; i++) {
         getDataFromEachFood(objects[i].codigo);
     }*/ // check!
     joinAndCreate();
