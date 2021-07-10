@@ -14,10 +14,11 @@ async function run() {
     /*for (let i = 1; i < 55; i++) { //check!
         getDataFromPage(i); // o método é executado para cada uma das páginas e no final ele nos salva tudo num arquivo JSON
     }*/
-    for (let i = 1; i < objects.length; i++) {
+    /*for (let i = 1; i < objects.length; i++) {
         getDataFromEachFood(objects[i].codigo);
-    }
-    
+    }*/ // check!
+    joinAndCreate();
+    console.log("Nothing else to do!");
 }
 
 async function main() {
@@ -178,10 +179,43 @@ function loadFoodPage(codigo: string): string {
     return result;
 }
 
+function loadFoodFromCode(codigo : string) : string {
+    let result : string = fs.readFileSync(`./teste/${codigo}.txt`, "utf8");
+    return result;
+}
+
 // Lê os dados salvos do arquivo JSON e cria um array com os códigos
 function loadJSON(): string {
     let result: string = fs.readFileSync(`./pages/data.json`, "utf8");
     return result;
+}
+
+// Joina os dois
+function joinAndCreate() {
+    let result : any;
+    //console.log(objects[0]);
+    //console.log(objects[1].codigo);
+    let componentes = JSON.parse(loadFoodFromCode(objects[1].codigo));
+    result = {
+        codigo: objects[1].codigo,
+        nome: objects[1].nome,
+        nomeIngles: objects[1].nomeIngles,
+        nomeCientifico: objects[1].nomeCientifico,
+        grupo: objects[1].grupo,
+        marca: objects[1].marca,
+        componentes : [],
+    };
+    for (let i = 0; i < componentes.length; i++) {
+        result.componentes.push(componentes[i]);
+    }
+    let file = fs.createWriteStream(`./${DIRETORIO}/datadata.txt`)
+    file.write(JSON.stringify(result)); // Salva nosso objeto no arquivo, antes convertendo o objeto para uma string.
+    
+    
+    console.log(result);
+    //console.log(result[0]);
+    //console.log(componentes[1]);
+    
 }
 
 let objects = JSON.parse(loadJSON());
