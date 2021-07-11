@@ -5,19 +5,24 @@ const cheerio = require("cheerio");
 // Módulo padrão do node para acessar o filesystem do sistema operacional
 var fs = require("fs");
 
-const DIRETORIO = "teste"; // ou então pages
+const DIRETORIO_SAVE = "data";
+const DIRETORIO_LOAD = "pages";
 
 // script run
 async function run() {
     let numeroDePaginas = 54;
-    //downloadPages(numeroDePaginas); // o site possui 54 páginas //check!
+    //await downloadPages(numeroDePaginas); // o site possui 54 páginas //check!
     /*for (let i = 1; i < 55; i++) { //check!
         getDataFromPage(i); // o método é executado para cada uma das páginas e no final ele nos salva tudo num arquivo JSON
     }*/
+    //fixJSON(loadFile()); // check (almost)
     /*for (let i = 0; i < objects.length; i++) {
         getDataFromEachFood(objects[i].codigo);
     }*/ // check!
-    joinAndCreate();
+    /*for (let i = 0; i < objects.length; i++) { // check!
+        joinAndCreate(i);
+    }*/
+
     console.log("Nothing else to do!");
 }
 
@@ -45,45 +50,28 @@ async function downloadPages(numeroDePaginas: number) {
             continue; // Continue retorna pro início do loop, sem incrementar i. Basicamente ele reseta a iteração atual.
         }
         // cria o arquivo no diretório designado usando o módulo fs
-        let file = fs.createWriteStream(`./${DIRETORIO}/Pagina_${i + 1}.html`, {
-            flags: "a", // 'a' significa appending (dados anteriores serão preservados)
-        });
-        file.write(page);
+        saveFile(page, `./${DIRETORIO_SAVE}/Pagina_${i + 1}.html`);
         console.log(`Página ${i + 1} baixada com sucesso. `);
     }
 }
 
-// Baixa as páginas complementares de acordo com os códigos recebidos
-async function downloadComplimentaryPages() {
-    for (let i = 0; i < objects.length; i++) {
-        let page: string;
-        try {
-            page = await request.get(`http://tbca.net.br/base-dados/int_composicao_estatistica.php?cod_produto=${objects[i].codigo}`, { timeout: 5000 });
-        } catch (error) {
-            // nossa implementação será insistente. se der timeout após 5 segundos, ela tentará novamente até conseguir
-            console.log(error);
-            i--;
-            console.log(`Tentando novamente...`);
-            continue;
-        }
-        // cria o arquivo no diretório designado usando o módulo fs
-        let file = fs.createWriteStream(`./pages/${objects[i].codigo}.html`, {
-            flags: "a", // 'a' significa appending (dados anteriores serão preservados)
-        });
-        file.write(page);
-        console.log(`Página ${i} baixada com sucesso. `);
-    }
+// Formata o JSON para que ele fique em formato válido
+function fixJSON(data: string) {
+    let result = data.replace(/\[/g, "").replace(/\]/g, "").replace(/}{/g, "},{");
+    result = "[" + result + "]";
+    saveFile(result, `./${DIRETORIO_SAVE}/valid.json`);
+    console.log("Pronto!");
 }
 
 // Carrega uma página armazenada e retorna em formato de string
-function loadPage(page: number): string {
-    let result: string = fs.readFileSync(`./${DIRETORIO}/Pagina_${page}.html`, "utf8"); // !!! Arrumar isso
+function loadPage(page_number: number): string {
+    let result: string = fs.readFileSync(`./${DIRETORIO_LOAD}/Pagina_${page_number}.html`, "utf8"); // !!! Arrumar isso
     return result;
 }
 
 // Obtém as informações iniciais dos alimentos contidos na própria página de listagem
-function getDataFromPage(page: number) {
-    const $ = cheerio.load(loadPage(page));
+function getDataFromPage(page_number: number) {
+    const $ = cheerio.load(loadPage(page_number));
     const table = $("body > div > main > div > table > tbody > tr > td");
 
     // cria o array de objetos que irá armazenar os dados extraídos
@@ -117,10 +105,7 @@ function getDataFromPage(page: number) {
     }
 
     //console.log(alimento[0]); // !!!!!! excluir, só teste
-    let file = fs.createWriteStream(`./${DIRETORIO}/alimentos.txt`, {
-        flags: "a", // 'a' significa appending (dados anteriores serão preservados)
-    });
-    file.write(JSON.stringify(alimento)); // Salva nosso objeto no arquivo, antes convertendo o objeto para uma string.
+    saveFile(alimento, `./${DIRETORIO_SAVE}/alimentos.txt`);
 }
 
 // URGENTE!!! Implementar função para sanitizar o JSON. ( [] }{ )
@@ -167,10 +152,17 @@ function getDataFromEachFood(codigo: string) {
         counter++;
     }
 
-    //console.log(objetos); // !!pode tirar que é teste!
-    let file = fs.createWriteStream(`./${DIRETORIO}/${codigo}.txt`);
-    file.write(JSON.stringify(objetos));
-    console.log(`Got data from ${codigo}`);
+    saveFile(objetos, `./${DIRETORIO_SAVE}/${codigo}.txt`);
+    //console.log(`Got data from ${codigo}`);
+}
+
+function saveFile(data: {} | string, path: string) {
+    let file = fs.createWriteStream(path);
+    if (typeof data != "string") {
+        file.write(JSON.stringify(data)); // Salva nosso objeto no arquivo, antes convertendo o objeto para uma string.
+    } else {
+        file.write(data);
+    }
 }
 
 // Carrega uma página complementar única
@@ -178,44 +170,74 @@ function loadFoodPage(codigo: string): string {
     let result: string = fs.readFileSync(`./pages/${codigo}.html`, "utf8");
     return result;
 }
-
-function loadFoodFromCode(codigo : string) : string {
-    let result : string = fs.readFileSync(`./teste/${codigo}.txt`, "utf8");
+function loadFoodFromCode(codigo: string): string {
+    let result: string = fs.readFileSync(`./data/${codigo}.txt`, "utf8");
     return result;
 }
 
 // Lê os dados salvos do arquivo JSON e cria um array com os códigos
 function loadJSON(): string {
-    let result: string = fs.readFileSync(`./pages/data.json`, "utf8");
+    let result: string = fs.readFileSync(`./data/valid.json`, "utf8");
+    return result;
+}
+//!!! debug
+function loadFile(): string {
+    let result: string = fs.readFileSync(`./data/alimentos.txt`, "utf8");
     return result;
 }
 
 // Joina os dois
-function joinAndCreate() {
-    let result : any;
-    //console.log(objects[0]);
-    //console.log(objects[1].codigo);
-    let componentes = JSON.parse(loadFoodFromCode(objects[1].codigo));
+function joinAndCreate(index: number) {
+    let result: any;
+    let componentes = JSON.parse(loadFoodFromCode(objects[index].codigo));
+
     result = {
-        codigo: objects[1].codigo,
-        nome: objects[1].nome,
-        nomeIngles: objects[1].nomeIngles,
-        nomeCientifico: objects[1].nomeCientifico,
-        grupo: objects[1].grupo,
-        marca: objects[1].marca,
-        componentes : [],
+        codigo: objects[index].codigo,
+        nome: objects[index].nome,
+        nomeIngles: objects[index].nomeIngles,
+        nomeCientifico: objects[index].nomeCientifico,
+        grupo: objects[index].grupo,
+        marca: objects[index].marca,
+        componentes: [],
     };
     for (let i = 0; i < componentes.length; i++) {
         result.componentes.push(componentes[i]);
     }
-    let file = fs.createWriteStream(`./${DIRETORIO}/datadata.txt`)
-    file.write(JSON.stringify(result)); // Salva nosso objeto no arquivo, antes convertendo o objeto para uma string.
-    
-    
-    console.log(result);
+
+    saveFile(result, `./${DIRETORIO_SAVE}/${objects[index].codigo}_final.json`);
+
+    console.log(`${objects[index].codigo} salvo...`);
     //console.log(result[0]);
     //console.log(componentes[1]);
-    
+}
+
+let jsonArray : any;
+
+function concactEmAll(index) {
+    let result: string = fs.readFileSync(`./data/${objects[index].codigo}_final.json`, "utf8");
+    jsonArray = (JSON.parse(result)).concat()
+}
+
+// Baixa as páginas complementares de acordo com os códigos recebidos
+async function downloadComplimentaryPages() {
+    for (let i = 0; i < objects.length; i++) {
+        let page: string;
+        try {
+            page = await request.get(`http://tbca.net.br/base-dados/int_composicao_estatistica.php?cod_produto=${objects[i].codigo}`, { timeout: 5000 });
+        } catch (error) {
+            // nossa implementação será insistente. se der timeout após 5 segundos, ela tentará novamente até conseguir
+            console.log(error);
+            i--;
+            console.log(`Tentando novamente...`);
+            continue;
+        }
+        // cria o arquivo no diretório designado usando o módulo fs
+        let file = fs.createWriteStream(`./pages/${objects[i].codigo}.html`, {
+            flags: "a", // 'a' significa appending (dados anteriores serão preservados)
+        });
+        file.write(page);
+        console.log(`Página ${i} baixada com sucesso. `);
+    }
 }
 
 let objects = JSON.parse(loadJSON());
