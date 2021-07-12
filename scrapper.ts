@@ -47,7 +47,8 @@ async function downloadPages(numeroDePaginas: number) {
             // nossa implementação será insistente. se der timeout após 5 segundos, ela tentará novamente até conseguir
             console.log(error);
             console.log(`Tentando novamente...`);
-            continue; // Continue retorna pro início do loop, sem incrementar i. Basicamente ele reseta a iteração atual.
+            i--; // Decrementa o index para tentar novamente com a mesma página
+            continue; // Continue retorna pro início do loop.
         }
         // cria o arquivo no diretório designado usando o módulo fs
         saveFile(page, `./${DIRETORIO_SAVE}/Pagina_${i + 1}.html`);
