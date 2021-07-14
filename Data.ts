@@ -121,7 +121,6 @@ class Data {
         return result;
     }
 
-    // URGENTE!!! Implementar função para sanitizar o JSON. ( [] }{ )
     loadPage(page_number: number): string {
         let result: string = fs.readFileSync(`./ts-test/Pagina_${page_number}.html`, "utf8"); // !!! Arrumar isso
         return result;
