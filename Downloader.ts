@@ -25,6 +25,26 @@ class Downloader {
         }
     }
 
+    // Baixa as páginas complementares de acordo com os códigos recebidos
+    async downloadComplimentaryPages(objects: [any]) {
+        for (let i = 0; i < objects.length; i++) {
+            let page: string;
+            try {
+                page = await request.get(`http://tbca.net.br/base-dados/int_composicao_estatistica.php?cod_produto=${objects[i].codigo}`, { timeout: 5000 });
+            } catch (error) {
+                // nossa implementação será insistente. se der timeout após 5 segundos, ela tentará novamente até conseguir
+                console.log(error);
+                i--;
+                console.log(`Tentando novamente...`);
+                continue;
+            }
+            // cria o arquivo no diretório designado usando o módulo fs
+            let file = fs.createWriteStream(`./ts-test/${objects[i].codigo}.html`);
+            file.write(page);
+            console.log(`Página ${i} baixada com sucesso. `);
+        }
+    }
+
     saveFile(data: {} | string, path: string) {
         let file = fs.createWriteStream(path);
         if (typeof data != "string") {

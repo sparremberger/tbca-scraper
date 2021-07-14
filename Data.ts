@@ -44,9 +44,91 @@ class Data {
         //saveFile(alimento, `./${DIRETORIO_SAVE}/alimentos.txt`);
     }
 
+    // Entra na página específica e obtém o restante das informações de cada alimento
+    getDataFromEachFood(codigo: string) {
+        let page = this.loadFoodPage(codigo);
+        //console.log(page);
+        const $ = cheerio.load(page);
+        const table = $("#tabela1 > tbody > tr > td");
+
+        // cria o array de objetos que irá armazenar os dados extraídos
+        let objetos = [{}];
+
+        let counter = 0;
+        for (let j = 0; j < table.length; j += 9) {
+            objetos[counter] = {
+                componente: $(table[j]).text().replace(/["]+/g, "'"),
+                unidade: $(table[j + 1])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                valorPor100g: $(table[j + 2])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                desvioPadrao: $(table[j + 3])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                valorMinimo: $(table[j + 4])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                valorMaximo: $(table[j + 5])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                numeroDeDadosUtilizados: $(table[j + 6])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                referencias: $(table[j + 7])
+                    .text()
+                    .replace(/["]+/g, "'"),
+                tipoDeDados: $(table[j + 8])
+                    .text()
+                    .replace(/["]+/g, "'"),
+            };
+            counter++;
+        }
+
+        dl.saveFile(objetos, `./ts-test/${codigo}.txt`);
+        //console.log(`Got data from ${codigo}`);
+    }
+
+    // Joina os dois
+    joinAndCreate(index: number, food: any) {
+        let result: any;
+        let componentes = JSON.parse(this.loadFoodFromCode(food[index].codigo));
+
+        result = {
+            codigo: food[index].codigo,
+            nome: food[index].nome,
+            nomeIngles: food[index].nomeIngles,
+            nomeCientifico: food[index].nomeCientifico,
+            grupo: food[index].grupo,
+            marca: food[index].marca,
+            componentes: [],
+        };
+        for (let i = 0; i < componentes.length; i++) {
+            result.componentes.push(componentes[i]);
+        }
+
+        dl.saveFile(result, `./ts-test/${food[index].codigo}_final.json`);
+
+        console.log(`${food[index].codigo} salvo...`);
+        //console.log(result[0]);
+        //console.log(componentes[1]);
+    }
+
+    // Carrega uma página complementar única
+    loadFoodPage(codigo: string): string {
+        let result: string = fs.readFileSync(`./ts-test/${codigo}.html`, "utf8");
+        return result;
+    }
+
     // URGENTE!!! Implementar função para sanitizar o JSON. ( [] }{ )
     loadPage(page_number: number): string {
         let result: string = fs.readFileSync(`./ts-test/Pagina_${page_number}.html`, "utf8"); // !!! Arrumar isso
+        return result;
+    }
+
+    loadFoodFromCode(codigo: string): string {
+        let result: string = fs.readFileSync(`./data/${codigo}.txt`, "utf8");
         return result;
     }
 }
