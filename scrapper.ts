@@ -212,11 +212,11 @@ function joinAndCreate(index: number) {
     //console.log(componentes[1]);
 }
 
-let jsonArray : any;
+let jsonArray: any;
 
 function concactEmAll(index) {
     let result: string = fs.readFileSync(`./data/${objects[index].codigo}_final.json`, "utf8");
-    jsonArray = (JSON.parse(result)).concat()
+    jsonArray = JSON.parse(result).concat();
 }
 
 // Baixa as páginas complementares de acordo com os códigos recebidos
