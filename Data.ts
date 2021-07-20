@@ -40,8 +40,6 @@ class Data {
             counter++;
         }
         return alimento;
-        //console.log(alimento); // !!!!!! excluir, só teste
-        //saveFile(alimento, `./${DIRETORIO_SAVE}/alimentos.txt`);
     }
 
     // Entra na página específica e obtém o restante das informações de cada alimento
@@ -90,7 +88,7 @@ class Data {
         //console.log(`Got data from ${codigo}`);
     }
 
-    // Joina os dois
+    // Joina as duas páginas, a inicial e a de componentes, salvando em um arquivo json para cada alimento
     joinAndCreate(index: number, food: any) {
         let result: any;
         let componentes = JSON.parse(this.loadFoodFromCode(food[index].codigo));
@@ -111,8 +109,12 @@ class Data {
         dl.saveFile(result, `./ts-test/${food[index].codigo}_final.json`);
 
         console.log(`${food[index].codigo} salvo...`);
-        //console.log(result[0]);
-        //console.log(componentes[1]);
+    }
+
+    // Carrega uma página única e retorna como string
+    loadPage(page_number: number): string {
+        let result: string = fs.readFileSync(`./ts-test/Pagina_${page_number}.html`, "utf8"); // !!! Arrumar isso
+        return result;
     }
 
     // Carrega uma página complementar única
@@ -121,11 +123,7 @@ class Data {
         return result;
     }
 
-    loadPage(page_number: number): string {
-        let result: string = fs.readFileSync(`./ts-test/Pagina_${page_number}.html`, "utf8"); // !!! Arrumar isso
-        return result;
-    }
-
+    // !!!! deprecated, remover o quanto antes
     loadFoodFromCode(codigo: string): string {
         let result: string = fs.readFileSync(`./data/${codigo}.txt`, "utf8");
         return result;
